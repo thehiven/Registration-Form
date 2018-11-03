@@ -22,7 +22,8 @@ function validateName($name) {
 }
 
 function validateEmail($email) {
-  const regex = /\w+@\[a-zA-Z]+\.\[a-z]{3,}/i;
+  const regex = /\w+@[a-zA-Z]+\.[a-z]{3,}/i;
+  
 }
 
 $(document).ready(() => {
