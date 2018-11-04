@@ -14,16 +14,17 @@ button {
 
 body {
   font: 1em/1.5;
-  color: #184f68;
-	background: #accbd9;
+  color: #383838;
+	background: #383838;
 }
 
 header {
-	text-align: center;  
+  text-align: center;
+  color: white;
 }
 
 h1 {
-	font-size: 2.5em;
+  font-size: 2.5em;
 	text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
 	margin: 0;
 }
@@ -38,7 +39,7 @@ a {
 
 form {
 	padding: .875em 1.875em 1.875em;
-	background: #85b5ca;
+	background: white;
 }
 
 fieldset,
@@ -60,7 +61,7 @@ button {
 legend {
 	font-weight: 500;
 	padding-top: .5em;
-	border-top: 2px solid #679cb3;
+	border-top: 2px solid lightgray;
 	margin-bottom: 1.125em;
 }
 
@@ -71,7 +72,7 @@ legend {
 }
 
 label {
-	color: #000;
+	color: #383838;
 	display: block;
 	margin-bottom: .5em;
 }
@@ -85,14 +86,13 @@ input {
 	font-size: 1em;
 	font-weight: 500;
 	padding: .8em;
-	background: #c1deeb;
-	border: 2px solid #c1deeb;
+	border: 2px solid lightgray;
 	outline: none;
 }
 
 input:focus {
 	background: #fff;
-	border-color: #5e97b0;
+	border-color: black;
 	transition: border-color .4s, background-color .4s;
 }
 
@@ -102,15 +102,17 @@ input[type="radio"] {
 }
 
 button {
-	color: #fff;
+	color: black;
 	padding: .55em 1.25em;
-	background: #22627e;
+  border: 2px solid lightgray;
+  background: transparent;
 	margin: 1.25em 0 .5em;
-	cursor: pointer;
+  cursor: pointer;
+  transition: background .3s;
 }
 
 button:hover {
-	background: #184c62;
+	background: lightgray;
 }
 
 /* ================================= 
@@ -147,6 +149,35 @@ button:hover {
   content: " ";
   display: table;
   clear: both;
+}
+
+.warning {
+  position: relative;
+  display: inline-block;
+  color: red;
+  width: 100%;
+}
+
+.warning .tooltip {
+  width: 250px;
+  background-color: white;
+  color: red;
+  padding: .5em .5em;
+  border-radius: 5px;
+  position: absolute;
+  top: 50%;
+  left: 110%;
+}
+
+.warning .tooltip::after {
+  content: " ";
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  margin-top: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent white transparent transparent;
 }
 
 /* ================================= 

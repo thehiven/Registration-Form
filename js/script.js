@@ -1,10 +1,10 @@
 function handleTotalCost($fieldset, $input, checked) {
   const priceRegex = /\$\d+/i;
   const activityPrice = $input.parent().text().match(priceRegex)[0].slice(1);
-  let $totalElement = $fieldset.children('h2');
+  let $totalElement = $fieldset.children('h3');
 
   if ($totalElement.length === 0) {
-    $fieldset.append(`<h2>Total: $${activityPrice}</h2>`);
+    $fieldset.append(`<h3>Total: $${activityPrice}</h3>`);
   } else {
     let total = $totalElement.text().match(priceRegex)[0].slice(1);
     total = parseInt(total);
@@ -13,16 +13,53 @@ function handleTotalCost($fieldset, $input, checked) {
   }
 }
 
+function displayMessage($elem, message) {
+  $elem.css('border-color', 'red');
+  $elem.prev().addClass('warning');
+  $elem.prev().append(`<p class="tooltip">${message}</p>`)
+}
+
+function removeMessage($elem) {
+  $elem.css('border-color', '');
+  $elem.prev().removeClass('warning');
+  $elem.prev().children('.tooltip').remove();
+}
+
 function validateName($name) {
   if ($name.val().length === 0) {
-    $name.css('border-color', 'red');
+    displayMessage($name, 'Name field can\'t be empty!');
+    return false;
   } else {
-    $name.css('border-color', '');
+    removeMessage($name);
+    return true;
   }
 }
 
 function validateEmail($email) {
   const regex = /\w+@[a-zA-Z]+\.[a-z]{3,}/i;
+  if (regex.test($email.val())) {
+    removeMessage($email);
+    return true;
+  } else {
+    displayMessage($email, 'Email field must be a validly formatted e-mail address!');
+    return false;
+  }
+}
+
+function validateActivities($activities) {
+  console.log($activities.find('input:checked'));
+  if ($activities.find('input:checked').length > 0) {
+    $activities.removeClass('warning');
+    $activities.children('.tooltip').remove();
+    return true;
+  } else {
+    $activities.addClass('warning');
+    $activities.append('<p class="tooltip" style="top: 0;">At least one activity must be selected!</p>');
+    return false;
+  }
+}
+
+function validatePayment($payment) {
   
 }
 
@@ -43,6 +80,14 @@ $(document).ready(() => {
   $otherTitle.hide();
   $paypalInfo.hide();
   $bitcoinInfo.hide();
+
+  $name.change(() => {
+    validateName($name);
+  });
+
+  $email.change(() => {
+    validateEmail($email);
+  });
 
   $title.change(function() {
     let selectedValue = $(this).find('option:selected').val();
@@ -96,6 +141,7 @@ $(document).ready(() => {
     });
 
     handleTotalCost($activities, $(this), checked);
+    validateActivities($activities);
   });
 
   $payment.change(function() {
@@ -121,7 +167,8 @@ $(document).ready(() => {
 
   $('form').submit(function(e) {
     validateName($name);
-
+    validateEmail($email);
+    validateActivities($activities);
 
     e.preventDefault();
   });
