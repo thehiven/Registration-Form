@@ -244,15 +244,22 @@ $(document).ready(() => {
   });
 
   $('form').submit(function(e) {
+    let valid = false;
+    
+    if (validateName($name)) valid = true;
+    else valid = false;
 
-    e.preventDefault();
+    if (validateEmail($email)) valid = true;
+    else valid = false;
 
-    validateName($name);
-    validateEmail($email);
-    validateActivities($activities);
+    if (validateActivities($activities)) valid = true;
+    else valid = false;
 
     if ($payment.children('option:selected').val() === 'credit card') {
-      validatePayment($payment);
+      if (validatePayment($payment)) valid = true;
+      else valid = false;
     }
+
+    if (!valid) e.preventDefault();
   });
 });
