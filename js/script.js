@@ -13,24 +13,31 @@ function handleTotalCost($fieldset, $input, checked) {
   }
 }
 
-function displayMessage($elem, message) {
-  $elem.css('border-color', 'red');
-  $elem.prev().addClass('warning');
-  $elem.prev().append(`<p class="tooltip">${message}</p>`)
+function displayWarning($elem, message) {
+  if ($elem.prev().children('.tooltip').length === 0) {
+    $elem.css('border-color', 'red');
+    $elem.prev().addClass('warning');
+    $elem.prev().append(`<p class="tooltip">${message}</p>`)
+  } else {
+    $elem.prev().children('.tooltip').text(message);
+  }
 }
 
-function removeMessage($elem) {
+function removeWarning($elem) {
   $elem.css('border-color', '');
   $elem.prev().removeClass('warning');
   $elem.prev().children('.tooltip').remove();
 }
 
 function validateName($name) {
+  const regex = /[a-z]+\s([a-z]+\s)?[a-z]+/i;
   if ($name.val().length === 0) {
-    displayMessage($name, 'Name field can\'t be empty!');
+    displayWarning($name, 'Name field can\'t be empty!');
     return false;
+  } else if (!regex.test($name.val())) {
+    displayWarning($name, 'The name must be your full name. Middle name is optional.');
   } else {
-    removeMessage($name);
+    removeWarning($name);
     return true;
   }
 }
@@ -38,16 +45,15 @@ function validateName($name) {
 function validateEmail($email) {
   const regex = /\w+@[a-zA-Z]+\.[a-z]{3,}/i;
   if (regex.test($email.val())) {
-    removeMessage($email);
+    removeWarning($email);
     return true;
   } else {
-    displayMessage($email, 'Email field must be a validly formatted e-mail address!');
+    displayWarning($email, 'Email field must be a validly formatted e-mail address!');
     return false;
   }
 }
 
 function validateActivities($activities) {
-  console.log($activities.find('input:checked'));
   if ($activities.find('input:checked').length > 0) {
     $activities.removeClass('warning');
     $activities.children('.tooltip').remove();
@@ -60,7 +66,69 @@ function validateActivities($activities) {
 }
 
 function validatePayment($payment) {
+  const $creditInfo = $('#credit-card');
+  const $cardNumber = $('#cc-num');
+  const $zip = $('#zip');
+  const $cvv = $('#cvv');
+  const cardRegex = /\d{13,16}/;
+  const zipRegex = /\d{5}/;
+  const cvvRegex = /\d{3}/;
+
+  let validNumber = false;
+  let validZip = false;
+  let validCvv = false;
   
+  function displayWarning($element, message, id, customStyle) {
+    if ($('#' + id).length === 0) {
+      $element.css('border-color', 'red');
+      $element.prev().css('color', 'red');
+      $creditInfo.addClass('warning');
+      $creditInfo.append(`<p id="${id}" class="tooltip" style="${customStyle}">${message}</p>`);
+    } else {
+      $('#' + id).text(message);
+    }
+  }
+
+  function removeWarning($element, tooltipID) {
+    $element.css('border-color', '');
+    $element.prev().css('color', '');
+    $('#' + tooltipID).remove();
+  }
+
+  if ($cardNumber.val().length === 0) {
+    displayWarning($cardNumber, 'Seems like you forgot about card number. Enter it in the provided field, please!',
+                    'card-warning', 'top: 0;');
+    validNumber = false;
+  } else if (!cardRegex.test($cardNumber.val())) {
+    displayWarning($cardNumber, 'Credit Card Number must be a number between 13 and 16 digits!',
+                  'card-warning', 'top: 0;');
+    validNumber = false;
+  } else {
+    removeWarning($cardNumber, 'card-warning');
+    validNumber = true;
+  }
+
+  if (zipRegex.test($zip.val())) {
+    removeWarning($zip, 'zip-warning');
+    validZip = true;
+  } else {
+    displayWarning($zip, 'The Zip Code must be a 5-digit number!', 'zip-warning', 'top: 100px;');
+    validZip = false;
+  }
+
+  if (cvvRegex.test($cvv.val())) {
+    removeWarning($cvv, 'cvv-warning');
+    validCvv = true;
+  } else {
+    displayWarning($cvv, 'The CVV must be a 3 digits long number!', 'cvv-warning', 'top: 175px;');
+    validCvv = false;
+  }
+
+  if (validNumber && validZip && validCvv) {
+    $creditInfo.removeClass('warning');
+  }
+
+  return validNumber && validZip && validCvv;
 }
 
 $(document).ready(() => {
@@ -68,6 +136,7 @@ $(document).ready(() => {
   const $email = $('#mail');
   const $title = $('#title');
   const $design = $('#design');
+  const $colors = $('#colors-js-puns');
   const $activities = $('fieldset.activities');
   const $payment = $('#payment');
   const $otherTitle = $('#other_title');
@@ -80,12 +149,14 @@ $(document).ready(() => {
   $otherTitle.hide();
   $paypalInfo.hide();
   $bitcoinInfo.hide();
+  $design.children(':first').attr('disabled', true);
+  $colors.hide();
 
-  $name.change(() => {
+  $name.keyup(() => {
     validateName($name);
   });
 
-  $email.change(() => {
+  $email.keyup(() => {
     validateEmail($email);
   });
 
@@ -118,6 +189,8 @@ $(document).ready(() => {
         $(this).hide();
       }
     });
+
+    $colors.show();
   });
 
   $activities.on('change', 'input', function() {
@@ -159,17 +232,27 @@ $(document).ready(() => {
         break;
       default:
         $(this).next().show();
+        validatePayment($payment);
         $paypalInfo.hide();
         $bitcoinInfo.hide();
         break;
     }
   });
 
+  $('#credit-card').on('keyup', 'input', function() {
+    validatePayment($payment);
+  });
+
   $('form').submit(function(e) {
+
+    e.preventDefault();
+
     validateName($name);
     validateEmail($email);
     validateActivities($activities);
 
-    e.preventDefault();
+    if ($payment.children('option:selected').val() === 'credit card') {
+      validatePayment($payment);
+    }
   });
 });
