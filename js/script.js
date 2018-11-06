@@ -1,19 +1,25 @@
+// finds provided price using regex
+// if total element is not created, creates total element and writes total price into it
+// if total element exists, calculates new total price and writes it into the element
 function handleTotalCost($fieldset, $input, checked) {
-  const priceRegex = /\$\d+/i;
+  const priceRegex = /\$\d+/i; // regex to find price value
+  // get price from activity label
   const activityPrice = $input.parent().text().match(priceRegex)[0].slice(1);
-  let $totalElement = $fieldset.children('h3');
+  let $totalElement = $fieldset.children('h3'); // look for total element
 
   if ($totalElement.length === 0) {
     $fieldset.append(`<h3>Total: $${activityPrice}</h3>`);
   } else {
-    let total = $totalElement.text().match(priceRegex)[0].slice(1);
+    let total = $totalElement.text().match(priceRegex)[0].slice(1); // get price from total element
     total = parseInt(total);
     total = checked ? total + parseInt(activityPrice) : total - parseInt(activityPrice);
     $totalElement.text(`Total: $${total}`);
   }
 }
 
+// displays tooltip with warning message
 function displayWarning($elem, message) {
+  // if tooltip doesnt exist, create it
   if ($elem.prev().children('.tooltip').length === 0) {
     $elem.css('border-color', 'red');
     $elem.prev().addClass('warning');
@@ -23,6 +29,7 @@ function displayWarning($elem, message) {
   }
 }
 
+// removes tooltip from provided element
 function removeWarning($elem) {
   $elem.css('border-color', '');
   $elem.prev().removeClass('warning');
@@ -30,7 +37,7 @@ function removeWarning($elem) {
 }
 
 function validateName($name) {
-  const regex = /[a-z]+\s([a-z]+\s)?[a-z]+/i;
+  const regex = /[a-z]+\s([a-z]+\s)?[a-z]+/i; // regex for two words with optional third word
   if ($name.val().length === 0) {
     displayWarning($name, 'Name field can\'t be empty!');
     return false;
@@ -43,17 +50,22 @@ function validateName($name) {
 }
 
 function validateEmail($email) {
-  const regex = /\w+@[a-zA-Z]+\.[a-z]{3,}/i;
-  if (regex.test($email.val())) {
-    removeWarning($email);
-    return true;
-  } else {
+  const regex = /\w+@[a-zA-Z]+\.[a-z]{3,}/i; // regex for validly formatted e-mail address (vlad@treehouse.com)
+
+  if ($email.val().length === 0) {
+    displayWarning($email, 'Email field can\'t be empty!');
+    return false;
+  } else if (!regex.test($email.val())) {
     displayWarning($email, 'Email field must be a validly formatted e-mail address!');
     return false;
+  } else {
+    removeWarning($email);
+    return true;
   }
 }
 
 function validateActivities($activities) {
+  // if at least one activity is checked
   if ($activities.find('input:checked').length > 0) {
     $activities.removeClass('warning');
     $activities.children('.tooltip').remove();
@@ -78,7 +90,11 @@ function validatePayment($payment) {
   let validZip = false;
   let validCvv = false;
   
+  // creates warning tooltip with provided ID and style
+  // ID is used to remove correct warning tooltip when a field value is valid
+  // Style is used to place tooltip correctly
   function displayWarning($element, message, id, customStyle) {
+    // if tooltip doesn't exist, create one
     if ($('#' + id).length === 0) {
       $element.css('border-color', 'red');
       $element.prev().css('color', 'red');
@@ -89,6 +105,8 @@ function validatePayment($payment) {
     }
   }
 
+  // removes tooltip using provided ID
+  // removes warning css from the provided field
   function removeWarning($element, tooltipID) {
     $element.css('border-color', '');
     $element.prev().css('color', '');
@@ -124,6 +142,7 @@ function validatePayment($payment) {
     validCvv = false;
   }
 
+  // if all fields are valid, remove warning class from div
   if (validNumber && validZip && validCvv) {
     $creditInfo.removeClass('warning');
   }
@@ -152,6 +171,7 @@ $(document).ready(() => {
   $design.children(':first').attr('disabled', true);
   $colors.hide();
 
+  // real time validation
   $name.keyup(() => {
     validateName($name);
   });
@@ -161,7 +181,8 @@ $(document).ready(() => {
   });
 
   $title.change(function() {
-    let selectedValue = $(this).find('option:selected').val();
+    // if 'other' job title is selected display input field
+    let selectedValue = $(this).find('option:selected').val(); 
     if (selectedValue === 'other') {
       $otherTitle.prev().show();
       $otherTitle.show();
@@ -173,15 +194,17 @@ $(document).ready(() => {
 
   $design.change(function() {
     const selectedValue = $(this).children('option:selected').val();
-    const regex = selectedValue === 'js puns' ? /js puns/i : /i . js/i;
+    const regex = selectedValue === 'js puns' ? /js puns/i : /i . js/i; // regex used to find correct colors depending on the design
     let colorSelected = false;
 
+    // loop through all colors and show only the ones that match regex
     $('#color').children().each(function() {
       const text = $(this).text();
       if (regex.test(text)) {
+        // make sure correct color is selected by default
         if (!colorSelected) {
           $('#color').children('option:selected').removeAttr('selected');
-          $(this).attr('selected', true);
+          $(this).attr('selected', true); // select first matching color
           colorSelected = true;
         }
         $(this).show();
@@ -194,14 +217,16 @@ $(document).ready(() => {
   });
 
   $activities.on('change', 'input', function() {
-    const timeRegex = /\d+[ap]m-\d+[ap]m/i;
+    const timeRegex = /[a-z]+\s\d+[ap]m-\d+[ap]m/i; // regex for date and time of an activity
     const match = $(this).parent().text().match(timeRegex);
-    const activityTime = match ? match[0] : null;
+    const activityTime = match ? match[0] : null; // if we found activity time store it
     const checked = $(this).prop('checked');
 
+    // disable activities with the same date and time
     $activities.children('label').each(function() {
       if ($(this).text().match(activityTime)) {
         if (checked) {
+          // make sure that checked activity won't be disabled
           if (!$(this).children(':first').prop('checked')) {
             $(this).css('opacity', '.5');
             $(this).children(':first').attr('disabled', true);
